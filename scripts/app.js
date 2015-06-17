@@ -82,6 +82,20 @@ var App = function() {
 				ballBounds.y < targetRectBounds.y + targetRectBounds.height - Config.ballsRadius * 2
 				);
 	};
+	this.ballInSourceRect = function(ball) {
+		var sourceRectBounds = this.areas.source.getClientRect();
+		var ballBounds = ball.getClientRect();
+
+		return (
+				ballBounds.x > sourceRectBounds.x
+				&&
+				ballBounds.x < sourceRectBounds.x + sourceRectBounds.width - Config.ballsRadius
+				&&
+				ballBounds.y > sourceRectBounds.y
+				&&
+				ballBounds.y < sourceRectBounds.y + sourceRectBounds.height - Config.ballsRadius * 2
+				);
+	};
 
 	/**
 	 *
@@ -94,15 +108,20 @@ var App = function() {
 
 			var sourceRectBounds = this.areas.source.getClientRect();
 
-			var ball = new Konva.Circle({
+			var coords = {
 				x: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.width - 50 - Config.ballsRadius - 2),
 				y: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.height - 50 - Config.ballsRadius - 2),
+			};
+			var ball = new Konva.Circle({
+				x: coords.x,
+				y: coords.y,
 				radius: Config.ballsRadius,
 				stroke: 'white',
 				strokeWidth: 2,
 				fill: Helpers.randomHex(),
 				draggable: true,
 				startScale: 1,
+				dragStartCoords: coords,
 				dragBoundFunc: function(pos) {
 
 
@@ -139,6 +158,10 @@ var App = function() {
 			if (_this.tween) {
 				_this.tween.pause();
 			}
+			shape.dragStartCoords =  {
+					x: shape.getX(),
+					y: shape.getY()
+				};
 			shape.setAttrs({
 				scale: {
 					x: shape.getAttr('startScale') * 1.2,
@@ -178,7 +201,9 @@ var App = function() {
 				}, _this.layer);
 				anim.start();
 			} else {
-				console.log(false);
+				if(!_this.ballInSourceRect(shape)) {
+					shape.position(shape.dragStartCoords);
+				}
 			}
 		});
 	};
