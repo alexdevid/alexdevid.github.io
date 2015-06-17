@@ -230,7 +230,7 @@ var App = function() {
 				var x_dist = mouseX - shape.lastMouseX;
 				var y_dist = mouseY - shape.lastMouseY;
 
-				var velocity = (Math.sqrt(x_dist*x_dist+y_dist*y_dist) / interval) * 10;
+				var velocity = (Math.sqrt(x_dist*x_dist+y_dist*y_dist) / interval) * 55;
 
 				shape.lastMouseX = mouseX;
 				shape.lastMouseY = mouseY;
