@@ -199,7 +199,7 @@ var App = function() {
 					shape.anim.stop();
 					shape.anim = false;
 				}
-				_this.moveShape(shape, {x: 1, y: 1});
+				_this.moveShape(shape, {x: 3, y: 3});
 
 			} else {
 				if (!_this.ballInSourceRect(shape)) {
@@ -208,6 +208,29 @@ var App = function() {
 			}
 		});
 
+		this.vectorInverse = function(vector2) {
+
+			//вправо вниз
+			if (vector2.x > 0 && vector2.y > 0) {
+				return {x: vector2.x, y: -vector2.y};
+			}
+
+			//вправо вверх
+			if (vector2.x > 0 && vector2.y < 0) {
+				return {x: -vector2.x, y: vector2.y};
+			}
+
+			//влево вверх
+			if (vector2.x < 0 && vector2.y < 0) {
+				return {x: vector2.x, y: -vector2.y};
+			}
+
+			//влево вниз
+			if (vector2.x < 0 && vector2.y > 0) {
+				return {x: -vector2.x, y: vector2.y};
+			}
+		};
+
 		this.moveShape = function(shape, vector2) {
 			var _this = this;
 			shape.anim = new Konva.Animation(function(frame) {
@@ -215,7 +238,7 @@ var App = function() {
 				if (!_this.ballInTargetRect(shape)) {
 					shape.anim.stop();
 					shape.anim = false;
-					_this.moveShape(shape, {x: -vector2.x, y: -vector2.y});
+					_this.moveShape(shape, _this.vectorInverse(vector2));
 				}
 			}, _this.layer);
 
