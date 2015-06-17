@@ -7,22 +7,44 @@ var Config = {
 
 var App = function() {
 
+	this.balls = [];
+	this.areas = {
+		source: null,
+		target: null
+	};
+
 	/**
 	 *
 	 * @returns {App}
 	 */
 	this.init = function() {
+
+		var savedStage = localStorage.getItem('balls-stage');
+
+		if (savedStage) {
+			localStorage.removeItem("balls-stage");
+			this.stage = Konva.Node.create(savedStage, 'container');
+			this.areas = {
+				source: this.stage.get("#sourceArea")[0],
+				target: this.stage.get("#targetArea")[0]
+			};
+			for (var i = 0; i < Config.ballsCount; i++) {
+				var ball = this.stage.get("#ball-" + i)[0];
+				this.balls.push(ball);
+				if (this.ballInTargetRect(ball)) {
+					this.moveShape(ball, ball.vector2);
+				}
+			}
+			this.bindEvents();
+			return this;
+		}
+
 		this.stage = new Konva.Stage({
 			container: 'container',
 			width: Config.boxWidth,
 			height: Config.boxHeight
 		});
 		this.layer = new Konva.Layer();
-		this.balls = [];
-		this.areas = {
-			source: null,
-			target: null
-		};
 		this.tween = null;
 
 		this
@@ -43,6 +65,7 @@ var App = function() {
 		var h = Config.boxHeight - 100;
 
 		this.areas.source = new Konva.Rect({
+			id: "sourceArea",
 			x: 50,
 			y: 50,
 			width: w - 25,
@@ -53,6 +76,7 @@ var App = function() {
 		});
 
 		this.areas.target = new Konva.Rect({
+			id: "targetArea",
 			x: 75 + w,
 			y: 50,
 			width: w - 25,
@@ -109,6 +133,7 @@ var App = function() {
 				y: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.height - 50 - Config.ballsRadius - 2),
 			};
 			var ball = new Konva.Circle({
+				id: 'ball-' + i,
 				x: coords.x,
 				y: coords.y,
 				radius: Config.ballsRadius,
@@ -233,6 +258,7 @@ var App = function() {
 
 		this.moveShape = function(shape, vector2) {
 			var _this = this;
+			shape.vector2 = vector2;
 			shape.anim = new Konva.Animation(function(frame) {
 				shape.move(vector2);
 				if (!_this.ballInTargetRect(shape)) {
@@ -253,5 +279,7 @@ var App = function() {
 
 var app = new App();
 
-
-
+window.onbeforeunload = function(event) {
+	localStorage.setItem('balls-stage', app.stage.toJSON());
+	return "";
+}
