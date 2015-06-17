@@ -68,33 +68,29 @@ var App = function() {
 		return this;
 	};
 
+	this.boundsInBounds = function(bounds1, bounds2) {
+		return (
+				bounds1.x > bounds2.x
+				&&
+				bounds1.x < bounds2.x + bounds2.width - Config.ballsRadius * 2
+				&&
+				bounds1.y > bounds2.y
+				&&
+				bounds1.y < bounds2.y + bounds2.height - Config.ballsRadius * 2
+				);
+	};
+
 	this.ballInTargetRect = function(ball) {
 		var targetRectBounds = this.areas.target.getClientRect();
 		var ballBounds = ball.getClientRect();
 
-		return (
-				ballBounds.x > targetRectBounds.x
-				&&
-				ballBounds.x < targetRectBounds.x + targetRectBounds.width - Config.ballsRadius
-				&&
-				ballBounds.y > targetRectBounds.y
-				&&
-				ballBounds.y < targetRectBounds.y + targetRectBounds.height - Config.ballsRadius * 2
-				);
+		return this.boundsInBounds(ballBounds, targetRectBounds);
 	};
 	this.ballInSourceRect = function(ball) {
 		var sourceRectBounds = this.areas.source.getClientRect();
 		var ballBounds = ball.getClientRect();
 
-		return (
-				ballBounds.x > sourceRectBounds.x
-				&&
-				ballBounds.x < sourceRectBounds.x + sourceRectBounds.width - Config.ballsRadius
-				&&
-				ballBounds.y > sourceRectBounds.y
-				&&
-				ballBounds.y < sourceRectBounds.y + sourceRectBounds.height - Config.ballsRadius * 2
-				);
+		return this.boundsInBounds(ballBounds, sourceRectBounds);
 	};
 
 	/**
@@ -123,8 +119,6 @@ var App = function() {
 				startScale: 1,
 				dragStartCoords: coords,
 				dragBoundFunc: function(pos) {
-
-
 					return {
 						x: pos.x,
 						y: pos.y
@@ -158,10 +152,10 @@ var App = function() {
 			if (_this.tween) {
 				_this.tween.pause();
 			}
-			shape.dragStartCoords =  {
-					x: shape.getX(),
-					y: shape.getY()
-				};
+			shape.dragStartCoords = {
+				x: shape.getX(),
+				y: shape.getY()
+			};
 			shape.setAttrs({
 				scale: {
 					x: shape.getAttr('startScale') * 1.2,
@@ -178,7 +172,16 @@ var App = function() {
 	this._onBallDragEnd = function() {
 		var _this = this;
 		this.stage.on('dragend', function(evt) {
+
 			var shape = evt.target;
+			var mousePos = _this.stage.getPointerPosition();
+			if (mousePos) {
+				var mouseX = mousePos.x;
+				var mouseY = mousePos.y;
+
+				shape.lastMouseX = mouseX;
+				shape.lastMouseY = mouseY;
+			}
 
 			_this.tween = new Konva.Tween({
 				node: shape,
@@ -190,22 +193,34 @@ var App = function() {
 			_this.tween.play();
 
 			if (_this.ballInTargetRect(shape)) {
-				var anim = new Konva.Animation(function(frame) {
-						shape.setX(shape.getX() + 1);
-						shape.setY(shape.getY() + 1);
+				//shape.setAttrs({draggable: false});
 
-					if (!_this.ballInTargetRect(shape)) {
-						shape.setX(shape.getX() - 1);
-						shape.setY(shape.getY() - 1);
-					}
-				}, _this.layer);
-				anim.start();
+				if (shape.anim) {
+					shape.anim.stop();
+					shape.anim = false;
+				}
+				_this.moveShape(shape, {x: 1, y: 1});
+
 			} else {
-				if(!_this.ballInSourceRect(shape)) {
+				if (!_this.ballInSourceRect(shape)) {
 					shape.position(shape.dragStartCoords);
 				}
 			}
 		});
+
+		this.moveShape = function(shape, vector2) {
+			var _this = this;
+			shape.anim = new Konva.Animation(function(frame) {
+				shape.move(vector2);
+				if (!_this.ballInTargetRect(shape)) {
+					shape.anim.stop();
+					shape.anim = false;
+					_this.moveShape(shape, {x: -vector2.x, y: -vector2.y});
+				}
+			}, _this.layer);
+
+			shape.anim.start();
+		};
 	};
 
 	this.init();
