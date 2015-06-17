@@ -68,13 +68,31 @@ var App = function() {
 		return this;
 	};
 
+	this.ballInTargetRect = function(ball) {
+		var targetRectBounds = this.areas.target.getClientRect();
+		var ballBounds = ball.getClientRect();
+
+		return (
+				ballBounds.x > targetRectBounds.x
+				&&
+				ballBounds.x < targetRectBounds.x + targetRectBounds.width - Config.ballsRadius
+				&&
+				ballBounds.y > targetRectBounds.y
+				&&
+				ballBounds.y < targetRectBounds.y + targetRectBounds.height - Config.ballsRadius * 2
+				);
+	};
+
 	/**
 	 *
 	 * @returns {App}
 	 */
 	this.drawBalls = function() {
+		var _this = this;
 		for (var i = 0; i < Config.ballsCount; i++) {
-			var sourceRectBounds = this.areas.source.getClientRect(true);
+			//TODO change to getAbsolutePosition();
+
+			var sourceRectBounds = this.areas.source.getClientRect();
 
 			var ball = new Konva.Circle({
 				x: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.width - 50 - Config.ballsRadius - 2),
@@ -86,6 +104,8 @@ var App = function() {
 				draggable: true,
 				startScale: 1,
 				dragBoundFunc: function(pos) {
+
+
 					return {
 						x: pos.x,
 						y: pos.y
@@ -144,8 +164,22 @@ var App = function() {
 				scaleX: shape.getAttr('startScale'),
 				scaleY: shape.getAttr('startScale')
 			});
-
 			_this.tween.play();
+
+			if (_this.ballInTargetRect(shape)) {
+				var anim = new Konva.Animation(function(frame) {
+						shape.setX(shape.getX() + 1);
+						shape.setY(shape.getY() + 1);
+
+					if (!_this.ballInTargetRect(shape)) {
+						shape.setX(shape.getX() - 1);
+						shape.setY(shape.getY() - 1);
+					}
+				}, _this.layer);
+				anim.start();
+			} else {
+				console.log(false);
+			}
 		});
 	};
 
