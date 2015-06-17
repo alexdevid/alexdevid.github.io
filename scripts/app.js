@@ -172,7 +172,12 @@ var App = function() {
 	this._onBallDragStart = function() {
 		var _this = this;
 		this.stage.on('dragstart', function(evt) {
+			var mousePos = _this.stage.getPointerPosition();
 			var shape = evt.target;
+
+			shape.lastMouseX = mousePos.x;
+			shape.lastMouseY = mousePos.y;
+
 			if (_this.tween) {
 				_this.tween.pause();
 			}
@@ -195,6 +200,7 @@ var App = function() {
 	 */
 	this._onBallDragEnd = function() {
 		var _this = this;
+		var t = Date.now();
 		this.stage.on('dragend', function(evt) {
 
 			var shape = evt.target;
@@ -202,6 +208,29 @@ var App = function() {
 			if (mousePos) {
 				var mouseX = mousePos.x;
 				var mouseY = mousePos.y;
+				var vector2 = {x: 1, y: 1};
+				//вправо вниз
+				if(mouseX > shape.lastMouseX  && mouseY > shape.lastMouseY){
+					vector2 = {x: 1, y: 1};
+				}
+				//вправо вверх
+				if(mouseX > shape.lastMouseX  && mouseY < shape.lastMouseY){
+					vector2 = {x: 1, y: -1};
+				}
+				//влево вниз
+				if(mouseX < shape.lastMouseX  && mouseY > shape.lastMouseY){
+					vector2 = {x: -1, y: 1};
+				}
+				//влево вверх
+				if(mouseX < shape.lastMouseX  && mouseY < shape.lastMouseY){
+					vector2 = {x: -1, y: -1};
+				}
+				var now = Date.now();
+				var interval = now - t;
+				var x_dist = mouseX - shape.lastMouseX;
+				var y_dist = mouseY - shape.lastMouseY;
+
+				var velocity = (Math.sqrt(x_dist*x_dist+y_dist*y_dist) / interval) * 10;
 
 				shape.lastMouseX = mouseX;
 				shape.lastMouseY = mouseY;
@@ -223,14 +252,29 @@ var App = function() {
 					shape.anim.stop();
 					shape.anim = false;
 				}
-				_this.moveShape(shape, {x: 3, y: 3});
+				_this.moveShape(shape, _this.vectorMultiply(vector2, velocity));
 
 			} else {
 				if (!_this.ballInSourceRect(shape)) {
 					shape.position(shape.dragStartCoords);
+				} else {
+					if(shape.anim) {
+						shape.anim.stop();
+						shape.anim = false;
+					}
 				}
 			}
 		});
+
+		this.getVelocity = function() {
+		}
+
+		this.vectorMultiply = function(vector2, num) {
+			return {
+				x: vector2.x * num,
+				y: vector2.y * num
+			};
+		}
 
 		this.vectorInverse = function(vector2) {
 
