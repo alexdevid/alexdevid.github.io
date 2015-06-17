@@ -18,8 +18,7 @@ var App = function() {
 	 * @returns {App}
 	 */
 	this.init = function() {
-
-		var savedStage = localStorage.getItem('balls-stage');
+		var savedStage = false;
 
 		if (savedStage) {
 			localStorage.removeItem("balls-stage");
@@ -278,8 +277,3 @@ var App = function() {
 };
 
 var app = new App();
-
-window.onbeforeunload = function(event) {
-	localStorage.setItem('balls-stage', app.stage.toJSON());
-	return "";
-}
