@@ -123,34 +123,22 @@ var App = function() {
 	this.drawBalls = function() {
 		var _this = this;
 		for (var i = 0; i < Config.ballsCount; i++) {
-			//TODO change to getAbsolutePosition();
-
 			var sourceRectBounds = this.areas.source.getClientRect();
 
 			var coords = {
 				x: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.width - 50 - Config.ballsRadius - 2),
 				y: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.height - 50 - Config.ballsRadius - 2),
 			};
-			var ball = new Konva.Circle({
-				id: 'ball-' + i,
-				x: coords.x,
-				y: coords.y,
-				radius: Config.ballsRadius,
-				stroke: 'white',
-				strokeWidth: 2,
-				fill: Helpers.randomHex(),
-				draggable: true,
-				startScale: 1,
-				dragStartCoords: coords,
-				dragBoundFunc: function(pos) {
-					return {
-						x: pos.x,
-						y: pos.y
-					};
-				}
+
+			var ball = new Models.Ball({
+				id: 'ball-' + 1,
+				position: coords,
+				color: Helpers.randomHex(),
+				radius: Config.ballsRadius
 			});
-			this.balls.push(ball);
-			this.layer.add(ball);
+			
+			this.balls.push(ball.getShape());
+			this.layer.add(ball.getShape());
 		}
 		return this;
 	};
@@ -210,19 +198,19 @@ var App = function() {
 				var mouseY = mousePos.y;
 				var vector2 = {x: 1, y: 1};
 				//вправо вниз
-				if(mouseX > shape.lastMouseX  && mouseY > shape.lastMouseY){
+				if (mouseX > shape.lastMouseX && mouseY > shape.lastMouseY) {
 					vector2 = {x: 1, y: 1};
 				}
 				//вправо вверх
-				if(mouseX > shape.lastMouseX  && mouseY < shape.lastMouseY){
+				if (mouseX > shape.lastMouseX && mouseY < shape.lastMouseY) {
 					vector2 = {x: 1, y: -1};
 				}
 				//влево вниз
-				if(mouseX < shape.lastMouseX  && mouseY > shape.lastMouseY){
+				if (mouseX < shape.lastMouseX && mouseY > shape.lastMouseY) {
 					vector2 = {x: -1, y: 1};
 				}
 				//влево вверх
-				if(mouseX < shape.lastMouseX  && mouseY < shape.lastMouseY){
+				if (mouseX < shape.lastMouseX && mouseY < shape.lastMouseY) {
 					vector2 = {x: -1, y: -1};
 				}
 				var now = Date.now();
@@ -230,7 +218,7 @@ var App = function() {
 				var x_dist = mouseX - shape.lastMouseX;
 				var y_dist = mouseY - shape.lastMouseY;
 
-				var velocity = (Math.sqrt(x_dist*x_dist+y_dist*y_dist) / interval) * 10;
+				var velocity = (Math.sqrt(x_dist * x_dist + y_dist * y_dist) / interval) * 10;
 
 				shape.lastMouseX = mouseX;
 				shape.lastMouseY = mouseY;
@@ -258,7 +246,7 @@ var App = function() {
 				if (!_this.ballInSourceRect(shape)) {
 					shape.position(shape.dragStartCoords);
 				} else {
-					if(shape.anim) {
+					if (shape.anim) {
 						shape.anim.stop();
 						shape.anim = false;
 					}
