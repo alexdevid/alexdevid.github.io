@@ -157,7 +157,7 @@ Models.Ball = (function() {
 					var y_dist = mouseY - shape.lastMouseY;
 
 					interval = interval > 0 ? interval : 1;
-					var velocity = (Math.sqrt(x_dist * x_dist + y_dist * y_dist) / interval) * 44;
+					var velocity = (Math.sqrt(x_dist * x_dist + y_dist * y_dist) / interval) * 0.1;
 
 					shape.lastMouseX = mouseX;
 					shape.lastMouseY = mouseY;
@@ -178,7 +178,7 @@ Models.Ball = (function() {
 					}
 
 					//TODO VELOCITY!
-					this.move(vector2.multiply(3));
+					this.move(vector2.multiply(velocity));
 
 				} else {
 					if (!this.isInRect(this.Layer.find("#sourceArea")[0].getClientRect())) {

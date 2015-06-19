@@ -10,6 +10,7 @@ var App = (function() {
 	function App(config) {
 		Config = config;
 
+		this.flushCache = false;
 		this.balls = [];
 		this.areas = {
 			source: {},
@@ -125,6 +126,7 @@ var App = (function() {
 	};
 
 	App.prototype.flush = function() {
+		this.flushCache = true;
 		localStorage.removeItem('app.keys.balls');
 		return false;
 	};
@@ -135,7 +137,9 @@ var App = (function() {
 
 var application = new App(Config);
 
-//window.onbeforeunload = function(e) {
-//	//application.save();
-//	return false;
-//}
+window.onbeforeunload = function(e) {
+	if(!application.flushCache){
+		application.save();
+	}
+	return false;
+}
