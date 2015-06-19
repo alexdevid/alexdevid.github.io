@@ -1,127 +1,141 @@
-var App = (function () {
+var App = (function() {
 
 
-    var Config = {};
+	var Config = {};
 
-    /**
-     * @param config
-     * @constructor
-     */
-    function App(config) {
-        Config = config;
-        this.stage = new Konva.Stage({
-            container: 'container',
-            width: Config.boxWidth,
-            height: Config.boxHeight
-        });
-        this.layer = new Konva.Layer();
+	/**
+	 * @param config
+	 * @constructor
+	 */
+	function App(config) {
+		Config = config;
 
-        this.balls = [];
-        this.areas = {
-            source: {},
-            target: {}
-        };
-    }
+		this.balls = [];
+		this.areas = {
+			source: {},
+			target: {}
+		};
 
-    App.prototype.run = function () {
-        this.drawGui().stage.add(this.layer);
-    };
+		if (!this.load()) {
+			this.render().drawGui().stage.add(this.layer);
+		}
+	}
 
-    App.prototype.drawGui = function () {
-        return this.drawAreas().drawBalls();
-    };
+	App.prototype.render = function() {
+		this.stage = new Konva.Stage({
+			container: 'container',
+			width: Config.boxWidth,
+			height: Config.boxHeight
+		});
+		this.layer = new Konva.Layer();
 
-    /**
-     * @returns {App}
-     */
-    App.prototype.drawAreas = function () {
-        var w = (Config.boxWidth - 100) / 2;
-        var h = Config.boxHeight - 100;
+		return this;
+	};
 
-        this.areas.source = new Models.Area({
-            id: 'sourceArea',
-            width: w,
-            height: h,
-            color: '#f2f2f2',
-            position: new Vector2(50, 50)
-        }, this.stage);
+	App.prototype.drawGui = function() {
+		return this.drawAreas().drawBalls();
+	};
 
-        this.areas.target = new Models.Area({
-            id: 'targetArea',
-            width: w,
-            height: h,
-            color: '#f2f2f2',
-            position: new Vector2(75 + w, 50)
-        }, this.stage);
+	/**
+	 * @returns {App}
+	 */
+	App.prototype.drawAreas = function() {
+		var w = (Config.boxWidth - 100) / 2;
+		var h = Config.boxHeight - 100;
 
-        this.layer.add(this.areas.source.getShape());
-        this.layer.add(this.areas.target.getShape());
+		this.areas.source = new Models.Area({
+			id: 'sourceArea',
+			width: w,
+			height: h,
+			color: '#f2f2f2',
+			position: new Vector2(50, 50)
+		}, this.stage);
 
-        return this;
-    };
+		this.areas.target = new Models.Area({
+			id: 'targetArea',
+			width: w,
+			height: h,
+			color: '#f2f2f2',
+			position: new Vector2(75 + w, 50)
+		}, this.stage);
 
-    /**
-     * @returns {App}
-     */
-    App.prototype.drawBalls = function () {
-        for (var i = 0; i < Config.ballsCount; i++) {
-            var sourceRectBounds = this.areas.source.getShape().getClientRect();
-            var coords = {
-                x: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.width - 50 - Config.ballsRadius - 2),
-                y: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.height - 50 - Config.ballsRadius - 2)
-            };
+		this.layer.add(this.areas.source.getShape());
+		this.layer.add(this.areas.target.getShape());
 
-            var ball = new Models.Ball({
-                id: 'ball-' + i,
-                position: coords,
-                color: Helpers.randomHex(),
-                radius: Config.ballsRadius
-            }, this.stage);
+		return this;
+	};
 
-            ball.bindDragStart().bindDragEnd();
+	/**
+	 * @returns {App}
+	 */
+	App.prototype.drawBalls = function() {
+		for (var i = 0; i < Config.ballsCount; i++) {
+			var sourceRectBounds = this.areas.source.getShape().getClientRect();
+			var coords = {
+				x: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.width - 50 - Config.ballsRadius - 2),
+				y: Helpers.randomBetween(50 + Config.ballsRadius + 2, sourceRectBounds.height - 50 - Config.ballsRadius - 2)
+			};
 
-            this.balls.push(ball);
-            this.layer.add(ball.getShape());
-        }
-        return this;
-    };
+			var ball = new Models.Ball({
+				id: 'ball-' + i,
+				position: coords,
+				color: Helpers.randomHex(),
+				radius: Config.ballsRadius
+			}, this.stage, this.layer);
+
+			ball.bindDragStart().bindDragEnd();
+
+			this.balls.push(ball);
+			this.layer.add(ball.getShape());
+		}
+		return this;
+	};
 
 
-    App.prototype.save = function () {
+	App.prototype.save = function() {
 
-    };
+		var ballKeys = [];
+		for (var i = 0; i < this.balls.length; i++) {
+			ballKeys.push(this.balls[i].save());
+		}
 
-    App.prototype.load = function () {
+		localStorage.setItem("app.keys.balls", JSON.stringify(ballKeys));
+		return false;
+	};
 
-    };
+	App.prototype.load = function() {
+		var savedBalls = JSON.parse(localStorage.getItem('app.keys.balls'));
 
-    return App;
+		if (savedBalls) {
+			this.render().drawAreas();
+			for (var i = 0; i < savedBalls.length; i++) {
+				var ball = Models.Ball.load(savedBalls[i], this.stage, this.layer);
+
+				this.balls.push(ball);
+				this.layer.add(ball.getShape());
+				if (ball.isInRect(this.areas.target.getShape().getClientRect())) {
+					ball.move(new Vector2(ball.vector2.x, ball.vector2.y), this.areas.target.getShape().getClientRect());
+				}
+			}
+
+			this.stage.add(this.layer);
+			return true;
+		}
+		return false;
+	};
+
+	App.prototype.flush = function() {
+		localStorage.removeItem('app.keys.balls');
+		return false;
+	};
+
+	return App;
 })();
 
 
 var application = new App(Config);
-application.run();
-//
-//var savedTest = function () {
-//    var savedStage = false;
-//
-//    if (savedStage) {
-//        localStorage.removeItem("balls-stage");
-//        this.stage = Konva.Node.create(savedStage, 'container');
-//        this.areas = {
-//            source: this.stage.get("#sourceArea")[0],
-//            target: this.stage.get("#targetArea")[0]
-//        };
-//        for (var i = 0; i < APP.Config.ballsCount; i++) {
-//            var ball = this.stage.get("#ball-" + i)[0];
-//            this.balls.push(ball);
-//            if (this.ballInTargetRect(ball)) {
-//                this.moveShape(ball, ball.vector2);
-//            }
-//        }
-//        this.bindEvents();
-//        return this;
-//    }
-//
-//    return this;
-//};
+
+//window.onbeforeunload = function(e) {
+//	//application.save();
+//	return false;
+//}

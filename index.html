@@ -8,11 +8,25 @@
 			html, body {
 				margin: 0;
 				padding: 0;
+				font-family: sans-serif;
+			}
+			#save, #flush {
+				background: #f2f2f2;
+				padding: 5px 10px;
+				position: fixed;
+				top: 10px;
+				left: 50px;
+				text-decoration: none;
+			}
+			#flush {
+				left: 180px;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="container"></div>
+		<a href="#" id="save" onclick="application.save()">save stage</a>
+		<a href="#" id="flush" onclick="application.flush()">flush stage</a>
 		<script type="text/javascript" src="scripts/vendor/konva.js"></script>
 		<script type="text/javascript" src="scripts/config.js"></script>
 		<script type="text/javascript" src="scripts/components/helpers.js"></script>
