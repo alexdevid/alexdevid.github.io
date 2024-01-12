@@ -1,0 +1,18 @@
+:root {
+    --color-white: #fff;
+    --color-light-gray: #f7f8fa;
+}
+
+html {
+    background-color: var(--color-light-gray);
+    height: 100%;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 14px;
+}
+
+body {
+    max-width: 1024px;
+    min-height: 100%;
+    margin: 0 auto;
+    background-color: var(--color-white);
+}
